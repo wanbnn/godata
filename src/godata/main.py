@@ -14,8 +14,8 @@ from starlette.concurrency import run_in_threadpool
 
 from . import __version__
 from .config import ConfigurationError, Settings
-from .gateway import InvalidTargetError, SqlServerError, SqlServerGateway, TargetNotAllowedError
-from .models import HealthResponse, QueryRequest, QueryResponse
+from .gateway import InvalidTargetError, SqlServerError, SqlServerGateway
+from .models import ColumnInfo, DatabaseInfo, HealthResponse, QueryRequest, QueryResponse, SchemaInfo, TableInfo
 from .sql_validation import UnsafeQueryError, validate_read_only_query
 
 logger = logging.getLogger("godata")
@@ -55,6 +55,32 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
     def health() -> HealthResponse:
         return HealthResponse(status="ok", service="godata", version=__version__)
 
+    async def run_discovery(request: Request, method: str, *args: str | None):
+        try:
+            async with request.app.state.query_slots:
+                return await run_in_threadpool(getattr(request.app.state.gateway, method), *args)
+        except InvalidTargetError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SqlServerError as exc:
+            logger.exception("Falha no discovery SQL Server; request_id=%s", request.state.request_id)
+            raise HTTPException(status_code=502, detail="Falha ao consultar metadados do SQL Server") from exc
+
+    @application.get("/v1/discovery/databases", response_model=list[DatabaseInfo], dependencies=[Depends(require_api_key)], tags=["discovery"])
+    async def databases(server: str, request: Request):
+        return await run_discovery(request, "list_databases", server)
+
+    @application.get("/v1/discovery/schemas", response_model=list[SchemaInfo], dependencies=[Depends(require_api_key)], tags=["discovery"])
+    async def schemas(server: str, database: str, request: Request):
+        return await run_discovery(request, "list_schemas", server, database)
+
+    @application.get("/v1/discovery/tables", response_model=list[TableInfo], dependencies=[Depends(require_api_key)], tags=["discovery"])
+    async def tables(server: str, database: str, request: Request, schema: str | None = None):
+        return await run_discovery(request, "list_tables", server, database, schema)
+
+    @application.get("/v1/discovery/columns", response_model=list[ColumnInfo], dependencies=[Depends(require_api_key)], tags=["discovery"])
+    async def columns(server: str, database: str, schema: str, table: str, request: Request):
+        return await run_discovery(request, "list_columns", server, database, schema, table)
+
     @application.post(
         "/v1/query",
         response_model=QueryResponse,
@@ -74,8 +100,6 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
                 )
         except (UnsafeQueryError, InvalidTargetError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except TargetNotAllowedError as exc:
-            raise HTTPException(status_code=403, detail=str(exc)) from exc
         except SqlServerError as exc:
             logger.exception("Falha SQL Server; request_id=%s", request.state.request_id)
             raise HTTPException(status_code=502, detail="Falha ao consultar o SQL Server") from exc

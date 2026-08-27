@@ -53,7 +53,6 @@ Se preferir, defina-as no PowerShell antes de iniciar:
 
 ```powershell
 $env:GODATA_API_KEY = "uma-chave-aleatoria-com-pelo-menos-24-caracteres"
-$env:GODATA_ALLOWED_TARGETS = '{"sqlserver01":["ERP","DataWarehouse"]}'
 $env:GODATA_ODBC_DRIVER = "ODBC Driver 18 for SQL Server"
 $env:GODATA_ENCRYPT = "true"
 $env:GODATA_TRUST_SERVER_CERTIFICATE = "false"
@@ -139,10 +138,24 @@ Os parâmetros usam marcadores `?` do ODBC. Valores `decimal` são retornados co
 preservar precisão; datas usam ISO 8601; binários usam Base64. Os dados são retornados como
 vetores para preservar colunas duplicadas no resultado.
 
+## Discovery de metadados
+
+Os endpoints de discovery exigem o mesmo header `X-API-Key` e mostram somente objetos visíveis
+para a conta Windows que executa o GoData:
+
+```text
+GET /v1/discovery/databases?server=sqlserver01
+GET /v1/discovery/schemas?server=sqlserver01&database=ERP
+GET /v1/discovery/tables?server=sqlserver01&database=ERP&schema=dbo
+GET /v1/discovery/columns?server=sqlserver01&database=ERP&schema=dbo&table=clientes
+```
+
+O parâmetro `schema` em `/tables` é opcional; sem ele, tabelas e views de todos os schemas
+visíveis são retornadas. Os endpoints também estão disponíveis para teste interativo em `/docs`.
+
 ## Controles incluídos
 
 - `X-API-Key`, comparada em tempo constante;
-- allowlist exata de pares servidor/banco;
 - apenas uma instrução `SELECT`/CTE por chamada;
 - bloqueio de mutações, `SELECT INTO`, comandos e fontes remotas `OPEN*`;
 - parâmetros ODBC separados do SQL;

@@ -11,10 +11,28 @@ class FakeGateway:
         assert parameters == [7]
         return QueryResult(columns=["id", "nome"], rows=[[7, "Alice"]], truncated=False, elapsed_ms=3)
 
+    def list_databases(self, server):
+        assert server == "sql01"
+        return [{"name": "ERP"}]
+
+    def list_schemas(self, server, database):
+        assert (server, database) == ("sql01", "ERP")
+        return [{"name": "dbo"}]
+
+    def list_tables(self, server, database, schema):
+        assert (server, database, schema) == ("sql01", "ERP", "dbo")
+        return [{"schema_name": "dbo", "name": "clientes", "type": "table"}]
+
+    def list_columns(self, server, database, schema, table):
+        assert (server, database, schema, table) == ("sql01", "ERP", "dbo", "clientes")
+        return [{
+            "schema_name": "dbo", "table_name": "clientes", "name": "id", "ordinal": 1,
+            "data_type": "int", "max_length": 4, "precision": 10, "scale": 0, "nullable": False,
+        }]
+
 
 SETTINGS = Settings(
     api_key="a" * 32,
-    allowed_targets={"sql01": frozenset({"erp"})},
 )
 
 
@@ -36,6 +54,27 @@ def test_query_requires_api_key():
             json={"server": "sql01", "database": "ERP", "query": "SELECT 1"},
         )
     assert response.status_code in {401, 403}
+
+
+def test_discovery_endpoints():
+    headers = {"X-API-Key": "a" * 32}
+    with client() as api:
+        databases = api.get("/v1/discovery/databases", params={"server": "sql01"}, headers=headers)
+        schemas = api.get("/v1/discovery/schemas", params={"server": "sql01", "database": "ERP"}, headers=headers)
+        tables = api.get(
+            "/v1/discovery/tables",
+            params={"server": "sql01", "database": "ERP", "schema": "dbo"}, headers=headers,
+        )
+        columns = api.get(
+            "/v1/discovery/columns",
+            params={"server": "sql01", "database": "ERP", "schema": "dbo", "table": "clientes"},
+            headers=headers,
+        )
+
+    assert databases.json() == [{"name": "ERP"}]
+    assert schemas.json() == [{"name": "dbo"}]
+    assert tables.json() == [{"schema_name": "dbo", "name": "clientes", "type": "table"}]
+    assert columns.json()[0]["name"] == "id"
 
 
 def test_executes_parameterized_read_query():

@@ -27,3 +27,29 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     version: str
+
+
+class DatabaseInfo(BaseModel):
+    name: str
+
+
+class SchemaInfo(BaseModel):
+    name: str
+
+
+class TableInfo(BaseModel):
+    schema_name: str
+    name: str
+    type: str
+
+
+class ColumnInfo(BaseModel):
+    schema_name: str
+    table_name: str
+    name: str
+    ordinal: int
+    data_type: str
+    max_length: int
+    precision: int
+    scale: int
+    nullable: bool
