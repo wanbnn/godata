@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "godata"
+version = "0.1.0"
+description = "Proxy HTTP de leitura para SQL Server usando autenticação integrada do Windows"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.116,<1",
+  "pyodbc>=5.2,<6",
+  "sqlglot>=27,<29",
+  "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<1",
+  "pytest>=8.4,<9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/godata"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.prpm.scripts]
+dev = ["uvicorn", "godata.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "4400", "--reload"]
+start = ["uvicorn", "godata.main:app", "--app-dir", "src", "--host", "0.0.0.0", "--port", "4400"]
+test = ["python", "-m", "pytest"]

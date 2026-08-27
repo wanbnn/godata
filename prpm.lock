@@ -1,0 +1,327 @@
+{
+  "lockVersion": 1,
+  "generatedAt": "2026-08-27T15:25:46.544991+00:00",
+  "python": "3.13.15",
+  "contentHash": "sha256:4c7fed2b7b40401e7f818424b11fef36104139f6fe71c1fa98d2a4d8b9a8c4cf",
+  "packages": [
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "direct": false,
+      "dev": false,
+      "requirement": "annotated-doc==0.0.5",
+      "url": "https://files.pythonhosted.org/packages/3e/30/e900b21425a860e195f32e37657aa1f7c7f2b1bfb26f03ca209b90933c06/annotated_doc-0.0.5-py3-none-any.whl",
+      "hashes": [
+        "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
+      ]
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "annotated-types==0.8.0",
+      "url": "https://files.pythonhosted.org/packages/99/91/8acff4f5e50511b911bbccb72b8628a49c68ce14148cd9f6431094859a90/annotated_types-0.8.0-py3-none-any.whl",
+      "hashes": [
+        "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0"
+      ]
+    },
+    {
+      "name": "anyio",
+      "version": "4.14.2",
+      "direct": false,
+      "dev": false,
+      "requirement": "anyio==4.14.2",
+      "url": "https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl",
+      "hashes": [
+        "9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494"
+      ]
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "direct": false,
+      "dev": true,
+      "requirement": "certifi==2026.7.22",
+      "url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl",
+      "hashes": [
+        "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775"
+      ]
+    },
+    {
+      "name": "click",
+      "version": "8.5.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "click==8.5.0",
+      "url": "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl",
+      "hashes": [
+        "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"
+      ]
+    },
+    {
+      "name": "fastapi",
+      "version": "0.141.1",
+      "direct": true,
+      "dev": false,
+      "requirement": "fastapi==0.141.1",
+      "url": "https://files.pythonhosted.org/packages/cb/03/10388a42375ee7e4ac9b94eb2c5c569c8b5795e377e701c9ac3ad63de890/fastapi-0.141.1-py3-none-any.whl",
+      "hashes": [
+        "bfb91aa2d334c61cb35ba9a116fc123b3d3df31640b801cf57a7a78ec3f603b3"
+      ]
+    },
+    {
+      "name": "h11",
+      "version": "0.16.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "h11==0.16.0",
+      "url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl",
+      "hashes": [
+        "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"
+      ]
+    },
+    {
+      "name": "httpcore",
+      "version": "1.0.9",
+      "direct": false,
+      "dev": true,
+      "requirement": "httpcore==1.0.9",
+      "url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl",
+      "hashes": [
+        "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"
+      ]
+    },
+    {
+      "name": "httptools",
+      "version": "0.8.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "httptools==0.8.0",
+      "url": "https://files.pythonhosted.org/packages/ba/53/771bd891eb0f236f32145d6a1775777ec85745f3cc983a1f23d1a3b8ddfe/httptools-0.8.0-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "hashes": [
+        "c4a9f1707e4823d54dfec6c33fa3697d302aed536ed352a7ebb5a061ddb869d0"
+      ]
+    },
+    {
+      "name": "httpx",
+      "version": "0.28.1",
+      "direct": true,
+      "dev": true,
+      "requirement": "httpx==0.28.1",
+      "url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl",
+      "hashes": [
+        "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"
+      ]
+    },
+    {
+      "name": "idna",
+      "version": "3.19",
+      "direct": false,
+      "dev": false,
+      "requirement": "idna==3.19",
+      "url": "https://files.pythonhosted.org/packages/57/b0/0e52c878c53f245edd3a11020f20979b3f490f245af532c7cae3027754b5/idna-3.19-py3-none-any.whl",
+      "hashes": [
+        "815e7be7a7806d54abb586dc943addc79e8b2ee16915059658cbeff4b1b43bf4"
+      ]
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "direct": false,
+      "dev": true,
+      "requirement": "iniconfig==2.3.0",
+      "url": "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl",
+      "hashes": [
+        "f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12"
+      ]
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "direct": false,
+      "dev": true,
+      "requirement": "packaging==26.3",
+      "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+      "hashes": [
+        "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+      ]
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "direct": false,
+      "dev": true,
+      "requirement": "pluggy==1.6.0",
+      "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+      "hashes": [
+        "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746"
+      ]
+    },
+    {
+      "name": "pydantic",
+      "version": "2.13.4",
+      "direct": false,
+      "dev": false,
+      "requirement": "pydantic==2.13.4",
+      "url": "https://files.pythonhosted.org/packages/fd/7b/122376b1fd3c62c1ed9dc80c931ace4844b3c55407b6fb2d199377c9736f/pydantic-2.13.4-py3-none-any.whl",
+      "hashes": [
+        "45a282cde31d808236fd7ea9d919b128653c8b38b393d1c4ab335c62924d9aba"
+      ]
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.46.4",
+      "direct": false,
+      "dev": false,
+      "requirement": "pydantic_core==2.46.4",
+      "url": "https://files.pythonhosted.org/packages/89/1d/8eff589b45bb8190a9d12c49cfad0f176a5cbd1534908a6b5125e2886239/pydantic_core-2.46.4-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "hashes": [
+        "7a5f930472650a82629163023e630d160863fce524c616f4e5186e5de9d9a49b"
+      ]
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "direct": false,
+      "dev": true,
+      "requirement": "Pygments==2.21.0",
+      "url": "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl",
+      "hashes": [
+        "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9"
+      ]
+    },
+    {
+      "name": "pyodbc",
+      "version": "5.3.0",
+      "direct": true,
+      "dev": false,
+      "requirement": "pyodbc==5.3.0",
+      "url": "https://files.pythonhosted.org/packages/a2/a6/71d26d626a3c45951620b7ff356ec920e420f0e09b0a924123682aa5e4ab/pyodbc-5.3.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "hashes": [
+        "08b2439500e212625471d32f8fde418075a5ddec556e095e5a4ba56d61df2dc6"
+      ]
+    },
+    {
+      "name": "pytest",
+      "version": "8.4.2",
+      "direct": true,
+      "dev": true,
+      "requirement": "pytest==8.4.2",
+      "url": "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl",
+      "hashes": [
+        "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79"
+      ]
+    },
+    {
+      "name": "python-dotenv",
+      "version": "1.2.3",
+      "direct": false,
+      "dev": false,
+      "requirement": "python-dotenv==1.2.3",
+      "url": "https://files.pythonhosted.org/packages/0d/17/c5c6b53ddc18f297992099b3d9ec16c855c0ccc83263a21fe4d1c625ec6c/python_dotenv-1.2.3-py3-none-any.whl",
+      "hashes": [
+        "904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9"
+      ]
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "direct": false,
+      "dev": false,
+      "requirement": "PyYAML==6.0.3",
+      "url": "https://files.pythonhosted.org/packages/88/f9/16491d7ed2a919954993e48aa941b200f38040928474c9e85ea9e64222c3/pyyaml-6.0.3-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "hashes": [
+        "c458b6d084f9b935061bc36216e8a69a7e293a2f1e68bf956dcd9e6cbcd143f5"
+      ]
+    },
+    {
+      "name": "sqlglot",
+      "version": "28.10.1",
+      "direct": true,
+      "dev": false,
+      "requirement": "sqlglot==28.10.1",
+      "url": "https://files.pythonhosted.org/packages/55/ff/5a768b34202e1ee485737bfa167bd84592585aa40383f883a8e346d767cc/sqlglot-28.10.1-py3-none-any.whl",
+      "hashes": [
+        "214aef51fd4ce16407022f81cfc80c173409dab6d0f6ae18c52b43f43b31d4dd"
+      ]
+    },
+    {
+      "name": "starlette",
+      "version": "1.6.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "starlette==1.6.0",
+      "url": "https://files.pythonhosted.org/packages/c8/cb/6a6a47d5b464bd08695d254f3da6e7986cc70c9fa5d778eda57538edfe56/starlette-1.6.0-py3-none-any.whl",
+      "hashes": [
+        "a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c"
+      ]
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "typing_extensions==4.16.0",
+      "url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl",
+      "hashes": [
+        "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+      ]
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "direct": false,
+      "dev": false,
+      "requirement": "typing-inspection==0.4.4",
+      "url": "https://files.pythonhosted.org/packages/67/81/4add07e5172b7ac40d8ed5ff580409a7801a4fe26d529bdd915401dabfbe/typing_inspection-0.4.4-py3-none-any.whl",
+      "hashes": [
+        "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147"
+      ]
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.52.4",
+      "direct": true,
+      "dev": false,
+      "requirement": "uvicorn==0.52.4",
+      "url": "https://files.pythonhosted.org/packages/f1/79/4a20b54ab0491485ccd8c077db2d39187c7f12b3e15485d38a7be37c81b4/uvicorn-0.52.4-py3-none-any.whl",
+      "hashes": [
+        "f86e41a149d7d05a9969337e3946a9c171c06a5d42680896daaba624aeac8da1"
+      ]
+    },
+    {
+      "name": "uvloop",
+      "version": "0.22.1",
+      "direct": false,
+      "dev": false,
+      "requirement": "uvloop==0.22.1",
+      "url": "https://files.pythonhosted.org/packages/b5/35/60249e9fd07b32c665192cec7af29e06c7cd96fa1d08b84f012a56a0b38e/uvloop-0.22.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "hashes": [
+        "c1955d5a1dd43198244d47664a5858082a3239766a839b2102a269aaff7a4e25"
+      ]
+    },
+    {
+      "name": "watchfiles",
+      "version": "1.2.0",
+      "direct": false,
+      "dev": false,
+      "requirement": "watchfiles==1.2.0",
+      "url": "https://files.pythonhosted.org/packages/7c/8a/3076c496ca8dafe0e8cd03fcebdfc47be4b1174b4e5b24ff6e396e6b3af2/watchfiles-1.2.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "hashes": [
+        "054dc20fd2e3132b4c3883b4a00d72fd6e1f56fdaf89fccd12e8057d74cd74d7"
+      ]
+    },
+    {
+      "name": "websockets",
+      "version": "17.1",
+      "direct": false,
+      "dev": false,
+      "requirement": "websockets==17.1",
+      "url": "https://files.pythonhosted.org/packages/46/c8/d8372256e00c4e3cab1115c45075d1eeedb642a3f2b42bd70c4deae03f06/websockets-17.1-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "hashes": [
+        "6f42912fa9eb4cb7c7ec9fde9b3332ba339eb8a8811981043d4029599f3d950b"
+      ]
+    }
+  ]
+}
