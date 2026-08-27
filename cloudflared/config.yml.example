@@ -1,0 +1,8 @@
+# Copie para config.yml e substitua os valores abaixo.
+tunnel: 00000000-0000-0000-0000-000000000000
+credentials-file: C:\Users\SEU_USUARIO\.cloudflared\00000000-0000-0000-0000-000000000000.json
+
+ingress:
+  - hostname: godata.seudominio.com
+    service: http://127.0.0.1:4400
+  - service: http_status:404

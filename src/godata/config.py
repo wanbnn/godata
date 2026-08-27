@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Mapping
+
+from dotenv import load_dotenv
 
 
 class ConfigurationError(RuntimeError):
@@ -65,6 +68,9 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        # Variáveis definidas no processo têm precedência sobre o .env.
+        load_dotenv(dotenv_path=Path.cwd() / ".env", override=False)
+
         api_key = os.getenv("GODATA_API_KEY", "")
         if len(api_key) < 24:
             raise ConfigurationError("GODATA_API_KEY deve possuir ao menos 24 caracteres")

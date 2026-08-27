@@ -18,6 +18,7 @@ do SQL Server.
 - Windows Server ou Windows 10/11 ingressado no domínio;
 - Python 3.11 ou superior;
 - Microsoft ODBC Driver 18 for SQL Server;
+- `cloudflared` instalado e disponível no `PATH`;
 - uma conta AD dedicada, com permissão **somente SELECT** nos bancos necessários.
 
 > A validação de SQL da aplicação é uma camada adicional. A proteção principal deve ser a
@@ -46,8 +47,9 @@ Para iniciar sem reload:
 prpm run start
 ```
 
-O arquivo `.env` serve como referência; o Uvicorn não o carrega automaticamente. Defina as
-variáveis no ambiente do processo ou carregue-as ao iniciar:
+O GoData carrega automaticamente o arquivo `.env` da pasta em que o comando é executado.
+Variáveis definidas diretamente no ambiente do processo têm precedência sobre o arquivo.
+Se preferir, defina-as no PowerShell antes de iniciar:
 
 ```powershell
 $env:GODATA_API_KEY = "uma-chave-aleatoria-com-pelo-menos-24-caracteres"
@@ -60,6 +62,41 @@ prpm run dev
 ```
 
 Abra `http://localhost:4400/docs` para consultar o OpenAPI/Swagger.
+
+## Cloudflare Tunnel
+
+O GoData escuta apenas em `127.0.0.1:4400`; o acesso externo deve passar pelo
+[`cloudflared`](https://github.com/cloudflare/cloudflared). Para criar um endereço temporário
+de teste, mantenha `prpm run dev` ou `prpm run start` em execução e, em outro terminal, rode:
+
+```powershell
+prpm run tunnel
+```
+
+O comando exibe uma URL aleatória `https://*.trycloudflare.com`. Esse modo não exige conta,
+mas é destinado somente a testes.
+
+Para produção, autentique e crie um túnel nomeado:
+
+```powershell
+cloudflared tunnel login
+cloudflared tunnel create godata
+cloudflared tunnel route dns godata godata.seudominio.com
+Copy-Item cloudflared/config.yml.example cloudflared/config.yml
+```
+
+Edite `cloudflared/config.yml` com o UUID do túnel, o caminho do arquivo de credenciais e o
+hostname criado. O arquivo local é ignorado pelo Git. Depois, com o GoData em execução, inicie
+o túnel:
+
+```powershell
+prpm run tunnel-prod
+```
+
+Em produção, configure `prpm run start` e `prpm run tunnel-prod` como serviços Windows sob as
+contas apropriadas. A porta 4400 não precisa ser liberada no firewall, pois o `cloudflared`
+estabelece uma conexão de saída com a Cloudflare. Mantenha a exigência de `X-API-Key` e, se o
+endpoint não for público, aplique também uma política do Cloudflare Access.
 
 Em produção, execute esse comando como serviço Windows sob a conta de domínio dedicada. A
 conta do serviço precisa ter `Log on as a service`, acesso de rede ao SQL Server e o login
@@ -115,8 +152,8 @@ vetores para preservar colunas duplicadas no resultado.
 - limite de linhas, tamanho do SQL e consultas simultâneas;
 - `X-Request-ID` para correlação sem registrar a consulta ou os dados.
 
-O banco **não é publicado diretamente** pelo GoData. Restrinja a porta 4400 no firewall aos
-clientes autorizados e, fora de uma rede estritamente privada, coloque TLS em um proxy reverso.
+O banco **não é publicado diretamente** pelo GoData. O servidor HTTP fica acessível apenas no
+loopback e o Cloudflare Tunnel fornece a conexão externa com TLS, sem expor a porta 4400.
 
 ## Testes
 

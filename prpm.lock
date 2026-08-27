@@ -1,8 +1,8 @@
 {
   "lockVersion": 1,
-  "generatedAt": "2026-08-27T15:25:46.544991+00:00",
-  "python": "3.13.15",
-  "contentHash": "sha256:4c7fed2b7b40401e7f818424b11fef36104139f6fe71c1fa98d2a4d8b9a8c4cf",
+  "generatedAt": "2026-08-27T15:39:40.691501+00:00",
+  "python": "3.12.10",
+  "contentHash": "sha256:4bd065100848c1cedbb44ae94e7ab48f28c6c710a17958452449ec99ab77811e",
   "packages": [
     {
       "name": "annotated-doc",
@@ -60,6 +60,17 @@
       ]
     },
     {
+      "name": "colorama",
+      "version": "0.4.6",
+      "direct": false,
+      "dev": true,
+      "requirement": "colorama==0.4.6",
+      "url": "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl",
+      "hashes": [
+        "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
+      ]
+    },
+    {
       "name": "fastapi",
       "version": "0.141.1",
       "direct": true,
@@ -98,9 +109,9 @@
       "direct": false,
       "dev": false,
       "requirement": "httptools==0.8.0",
-      "url": "https://files.pythonhosted.org/packages/ba/53/771bd891eb0f236f32145d6a1775777ec85745f3cc983a1f23d1a3b8ddfe/httptools-0.8.0-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/05/0b/4240efeb672751ee5b9b380cb0e3fdc050bc05f68adc7a8aefc4fcd9a69a/httptools-0.8.0-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "c4a9f1707e4823d54dfec6c33fa3697d302aed536ed352a7ebb5a061ddb869d0"
+        "cd96f29b4bab1d42fa6e3d008711c75e0f79e94e06827330160e3a304227f150"
       ]
     },
     {
@@ -175,9 +186,9 @@
       "direct": false,
       "dev": false,
       "requirement": "pydantic_core==2.46.4",
-      "url": "https://files.pythonhosted.org/packages/89/1d/8eff589b45bb8190a9d12c49cfad0f176a5cbd1534908a6b5125e2886239/pydantic_core-2.46.4-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/40/8c/985c1d41ea1107c2534abd9870e4ed5c8e7669b5c308297835c001e7a1c4/pydantic_core-2.46.4-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "7a5f930472650a82629163023e630d160863fce524c616f4e5186e5de9d9a49b"
+        "e9c26f834c65f5752f3f06cb08cb86a913ceb7274d0db6e267808a708b46bc89"
       ]
     },
     {
@@ -197,9 +208,9 @@
       "direct": true,
       "dev": false,
       "requirement": "pyodbc==5.3.0",
-      "url": "https://files.pythonhosted.org/packages/a2/a6/71d26d626a3c45951620b7ff356ec920e420f0e09b0a924123682aa5e4ab/pyodbc-5.3.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/c0/70/5e61b216cc13c7f833ef87f4cdeab253a7873f8709253f5076e9bb16c1b3/pyodbc-5.3.0-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "08b2439500e212625471d32f8fde418075a5ddec556e095e5a4ba56d61df2dc6"
+        "fe77eb9dcca5fc1300c9121f81040cc9011d28cff383e2c35416e9ec06d4bc95"
       ]
     },
     {
@@ -216,7 +227,7 @@
     {
       "name": "python-dotenv",
       "version": "1.2.3",
-      "direct": false,
+      "direct": true,
       "dev": false,
       "requirement": "python-dotenv==1.2.3",
       "url": "https://files.pythonhosted.org/packages/0d/17/c5c6b53ddc18f297992099b3d9ec16c855c0ccc83263a21fe4d1c625ec6c/python_dotenv-1.2.3-py3-none-any.whl",
@@ -230,20 +241,20 @@
       "direct": false,
       "dev": false,
       "requirement": "PyYAML==6.0.3",
-      "url": "https://files.pythonhosted.org/packages/88/f9/16491d7ed2a919954993e48aa941b200f38040928474c9e85ea9e64222c3/pyyaml-6.0.3-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/86/bf/899e81e4cce32febab4fb42bb97dcdf66bc135272882d1987881a4b519e9/pyyaml-6.0.3-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "c458b6d084f9b935061bc36216e8a69a7e293a2f1e68bf956dcd9e6cbcd143f5"
+        "5fcd34e47f6e0b794d17de1b4ff496c00986e1c83f7ab2fb8fcfe9616ff7477b"
       ]
     },
     {
       "name": "sqlglot",
-      "version": "28.10.1",
+      "version": "30.17.0",
       "direct": true,
       "dev": false,
-      "requirement": "sqlglot==28.10.1",
-      "url": "https://files.pythonhosted.org/packages/55/ff/5a768b34202e1ee485737bfa167bd84592585aa40383f883a8e346d767cc/sqlglot-28.10.1-py3-none-any.whl",
+      "requirement": "sqlglot==30.17.0",
+      "url": "https://files.pythonhosted.org/packages/f3/bc/2a07cef49046e6cf5d1a8b1de553aaef8491b4170dbfe254c8687c764408/sqlglot-30.17.0-py3-none-any.whl",
       "hashes": [
-        "214aef51fd4ce16407022f81cfc80c173409dab6d0f6ae18c52b43f43b31d4dd"
+        "84435ac283a60173da31b5fd7d11a725037a1c3fd6ed1e21fb065de74ddb579f"
       ]
     },
     {
@@ -291,25 +302,14 @@
       ]
     },
     {
-      "name": "uvloop",
-      "version": "0.22.1",
-      "direct": false,
-      "dev": false,
-      "requirement": "uvloop==0.22.1",
-      "url": "https://files.pythonhosted.org/packages/b5/35/60249e9fd07b32c665192cec7af29e06c7cd96fa1d08b84f012a56a0b38e/uvloop-0.22.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
-      "hashes": [
-        "c1955d5a1dd43198244d47664a5858082a3239766a839b2102a269aaff7a4e25"
-      ]
-    },
-    {
       "name": "watchfiles",
       "version": "1.2.0",
       "direct": false,
       "dev": false,
       "requirement": "watchfiles==1.2.0",
-      "url": "https://files.pythonhosted.org/packages/7c/8a/3076c496ca8dafe0e8cd03fcebdfc47be4b1174b4e5b24ff6e396e6b3af2/watchfiles-1.2.0-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/1c/e6/9d42569c0102645cc8cea5d8c7d8a1e9d4ada2cb7f05f75e554b8aa2202a/watchfiles-1.2.0-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "054dc20fd2e3132b4c3883b4a00d72fd6e1f56fdaf89fccd12e8057d74cd74d7"
+        "f155b3a1b2a5fc89cdc70d47ee5d54e3b75e88efa34982028a35daef9ba00379"
       ]
     },
     {
@@ -318,9 +318,9 @@
       "direct": false,
       "dev": false,
       "requirement": "websockets==17.1",
-      "url": "https://files.pythonhosted.org/packages/46/c8/d8372256e00c4e3cab1115c45075d1eeedb642a3f2b42bd70c4deae03f06/websockets-17.1-cp314-cp314-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/50/23/493ecfdaf32898e5ea24dc900e33e5e317f9662d5d9ab2d44b2e111b4e1c/websockets-17.1-cp312-cp312-win_amd64.whl",
       "hashes": [
-        "6f42912fa9eb4cb7c7ec9fde9b3332ba339eb8a8811981043d4029599f3d950b"
+        "617243e19a0992095956f406ee9cd3bc4ba92862d83cb1d83bb59ce574412bec"
       ]
     }
   ]
