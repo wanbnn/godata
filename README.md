@@ -38,6 +38,19 @@ o Microsoft ODBC Driver 18 quando necessário, baixa o `cloudflared`, cria o amb
 gera uma API key criptograficamente aleatória. Uma reinstalação preserva a chave; para
 substituí-la, baixe o `install.ps1` e execute-o com `-RotateApiKey`.
 
+A instalação automática grava estes padrões:
+
+```env
+GODATA_ODBC_DRIVER=ODBC Driver 18 for SQL Server
+GODATA_ENCRYPT=true
+GODATA_TRUST_SERVER_CERTIFICATE=true
+GODATA_CONNECTION_TIMEOUT_SECONDS=2048
+GODATA_QUERY_TIMEOUT_SECONDS=0
+GODATA_MAX_ROWS=1500000
+GODATA_MAX_QUERY_LENGTH=100000
+GODATA_MAX_CONCURRENT_QUERIES=10
+```
+
 Ao entrar no Windows, uma janela inicia o GoData e mostra a API key e a nova URL temporária
 `trycloudflare.com`. A janela deve permanecer aberta. O instalador tenta registrar o startup,
 nesta ordem:
@@ -93,7 +106,7 @@ Se preferir, defina-as no PowerShell antes de iniciar:
 $env:GODATA_API_KEY = "uma-chave-aleatoria-com-pelo-menos-24-caracteres"
 $env:GODATA_ODBC_DRIVER = "ODBC Driver 18 for SQL Server"
 $env:GODATA_ENCRYPT = "true"
-$env:GODATA_TRUST_SERVER_CERTIFICATE = "false"
+$env:GODATA_TRUST_SERVER_CERTIFICATE = "true"
 
 prpm run dev
 ```

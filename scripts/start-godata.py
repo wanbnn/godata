@@ -85,6 +85,10 @@ def main() -> int:
                 raise RuntimeError(f"Arquivo obrigatório não encontrado: {required}")
 
         api_key = read_api_key()
+        app_environment = os.environ.copy()
+        for name in tuple(app_environment):
+            if name.startswith("GODATA_"):
+                del app_environment[name]
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         tunnel_out = LOG_DIR / "cloudflared.out.log"
         tunnel_err = LOG_DIR / "cloudflared.err.log"
@@ -98,6 +102,7 @@ def main() -> int:
                 "--host", "127.0.0.1", "--port", "4400",
             ],
             cwd=INSTALL_DIR,
+            env=app_environment,
             creationflags=CREATE_NEW_PROCESS_GROUP,
         )
         wait_for_health(app)
@@ -114,7 +119,6 @@ def main() -> int:
         )
         tunnel_url = wait_for_tunnel_url(tunnel, tunnel_out, tunnel_err)
 
-        os.system("cls")
         print("=" * 60)
         print(" GoData iniciado com Cloudflare Tunnel")
         print("=" * 60)

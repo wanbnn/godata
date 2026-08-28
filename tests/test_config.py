@@ -38,3 +38,22 @@ def test_zero_disables_query_timeout(tmp_path, monkeypatch):
     settings = Settings.from_env()
 
     assert settings.query_timeout_seconds == 0
+
+
+def test_sql_server_connection_defaults(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("GODATA_API_KEY", "a" * 32)
+    monkeypatch.delenv("GODATA_ODBC_DRIVER", raising=False)
+    monkeypatch.delenv("GODATA_ENCRYPT", raising=False)
+    monkeypatch.delenv("GODATA_TRUST_SERVER_CERTIFICATE", raising=False)
+
+    settings = Settings.from_env()
+
+    assert settings.odbc_driver == "ODBC Driver 18 for SQL Server"
+    assert settings.encrypt is True
+    assert settings.trust_server_certificate is True
+    assert settings.connection_timeout_seconds == 2048
+    assert settings.query_timeout_seconds == 0
+    assert settings.max_rows == 1_500_000
+    assert settings.max_query_length == 100_000
+    assert settings.max_concurrent_queries == 10

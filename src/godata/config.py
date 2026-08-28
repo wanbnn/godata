@@ -47,10 +47,10 @@ class Settings:
     api_key: str
     odbc_driver: str = "ODBC Driver 18 for SQL Server"
     encrypt: bool = True
-    trust_server_certificate: bool = False
-    connection_timeout_seconds: int = 10
+    trust_server_certificate: bool = True
+    connection_timeout_seconds: int = 2048
     query_timeout_seconds: int = 0
-    max_rows: int = 10_000
+    max_rows: int = 1_500_000
     max_query_length: int = 100_000
     max_concurrent_queries: int = 10
 
@@ -71,10 +71,10 @@ class Settings:
             api_key=api_key,
             odbc_driver=driver,
             encrypt=_boolean("GODATA_ENCRYPT", True),
-            trust_server_certificate=_boolean("GODATA_TRUST_SERVER_CERTIFICATE", False),
-            connection_timeout_seconds=_positive_int("GODATA_CONNECTION_TIMEOUT_SECONDS", 10),
+            trust_server_certificate=_boolean("GODATA_TRUST_SERVER_CERTIFICATE", True),
+            connection_timeout_seconds=_positive_int("GODATA_CONNECTION_TIMEOUT_SECONDS", 2048),
             query_timeout_seconds=_non_negative_int("GODATA_QUERY_TIMEOUT_SECONDS", 0),
-            max_rows=_positive_int("GODATA_MAX_ROWS", 10_000),
+            max_rows=_positive_int("GODATA_MAX_ROWS", 1_500_000),
             max_query_length=_positive_int("GODATA_MAX_QUERY_LENGTH", 100_000),
             max_concurrent_queries=_positive_int("GODATA_MAX_CONCURRENT_QUERIES", 10),
         )
