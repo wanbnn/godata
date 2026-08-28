@@ -22,6 +22,17 @@ def _positive_int(name: str, default: int) -> int:
     return value
 
 
+def _non_negative_int(name: str, default: int) -> int:
+    raw = os.getenv(name, str(default))
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ConfigurationError(f"{name} deve ser um número inteiro") from exc
+    if value < 0:
+        raise ConfigurationError(f"{name} deve ser maior ou igual a zero")
+    return value
+
+
 def _boolean(name: str, default: bool) -> bool:
     raw = os.getenv(name, str(default)).strip().lower()
     if raw in {"1", "true", "yes", "sim"}:
@@ -38,7 +49,7 @@ class Settings:
     encrypt: bool = True
     trust_server_certificate: bool = False
     connection_timeout_seconds: int = 10
-    query_timeout_seconds: int = 30
+    query_timeout_seconds: int = 0
     max_rows: int = 10_000
     max_query_length: int = 100_000
     max_concurrent_queries: int = 10
@@ -62,7 +73,7 @@ class Settings:
             encrypt=_boolean("GODATA_ENCRYPT", True),
             trust_server_certificate=_boolean("GODATA_TRUST_SERVER_CERTIFICATE", False),
             connection_timeout_seconds=_positive_int("GODATA_CONNECTION_TIMEOUT_SECONDS", 10),
-            query_timeout_seconds=_positive_int("GODATA_QUERY_TIMEOUT_SECONDS", 30),
+            query_timeout_seconds=_non_negative_int("GODATA_QUERY_TIMEOUT_SECONDS", 0),
             max_rows=_positive_int("GODATA_MAX_ROWS", 10_000),
             max_query_length=_positive_int("GODATA_MAX_QUERY_LENGTH", 100_000),
             max_concurrent_queries=_positive_int("GODATA_MAX_CONCURRENT_QUERIES", 10),

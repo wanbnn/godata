@@ -13,6 +13,44 @@ cliente HTTP -> GoData (X-API-Key) -> SQL Server
 O cliente nunca envia nem recebe a credencial do domínio. O GoData também não armazena senha
 do SQL Server.
 
+## Instalação automática no Windows
+
+No PowerShell, instale com:
+
+```powershell
+irm https://raw.githubusercontent.com/wanbnn/godata/main/install.ps1 | iex
+```
+
+No Prompt de Comando (CMD), use `curl`:
+
+```bat
+curl.exe -fsSL https://raw.githubusercontent.com/wanbnn/godata/main/install.bat -o "%TEMP%\godata-install.bat" && call "%TEMP%\godata-install.bat"
+```
+
+Ou, quando `wget.exe` estiver disponível:
+
+```bat
+wget.exe -q https://raw.githubusercontent.com/wanbnn/godata/main/install.bat -O "%TEMP%\godata-install.bat" && call "%TEMP%\godata-install.bat"
+```
+
+O instalador baixa o GoData em `%LOCALAPPDATA%\GoData`, localiza ou instala Python 3.11+, instala
+o Microsoft ODBC Driver 18 quando necessário, baixa o `cloudflared`, cria o ambiente virtual e
+gera uma API key criptograficamente aleatória. Uma reinstalação preserva a chave; para
+substituí-la, baixe o `install.ps1` e execute-o com `-RotateApiKey`.
+
+Ao entrar no Windows, uma janela inicia o GoData e mostra a API key e a nova URL temporária
+`trycloudflare.com`. A janela deve permanecer aberta. O instalador tenta registrar o startup,
+nesta ordem:
+
+1. tarefa interativa no Agendador de Tarefas;
+2. chave `Run` do usuário no Registro;
+3. arquivo de inicialização na pasta Startup do usuário.
+
+Todos os métodos são verificados antes de o instalador concluir. Políticas corporativas podem
+bloquear CMD, PowerShell, downloads ou todos os mecanismos de startup; essas restrições do
+Windows não podem ser contornadas pelo instalador. A instalação do driver ODBC pode apresentar
+um prompt UAC, que precisa ser autorizado pelo usuário ou administrador.
+
 ## Requisitos
 
 - Windows Server ou Windows 10/11 ingressado no domínio;
@@ -167,6 +205,10 @@ visíveis são retornadas. Os endpoints também estão disponíveis para teste i
 
 O banco **não é publicado diretamente** pelo GoData. O servidor HTTP fica acessível apenas no
 loopback e o Cloudflare Tunnel fornece a conexão externa com TLS, sem expor a porta 4400.
+
+Por padrão, `GODATA_QUERY_TIMEOUT_SECONDS=0` permite que a consulta termine sem um limite
+artificial de execução. Defina um valor positivo para impor um limite. O
+`GODATA_CONNECTION_TIMEOUT_SECONDS` continua limitando separadamente a abertura da conexão.
 
 ## Testes
 

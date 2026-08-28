@@ -20,6 +20,10 @@ class SqlServerError(RuntimeError):
     """Falha controlada ao carregar o ODBC ou acessar o SQL Server."""
 
 
+class QueryTimeoutError(SqlServerError):
+    """A consulta excedeu o tempo limite configurado."""
+
+
 _SERVER_RE = re.compile(r"^[A-Za-z0-9_.\\,:-]+$")
 _DATABASE_RE = re.compile(r"^[A-Za-z0-9_$#@. -]+$")
 
@@ -100,6 +104,8 @@ class SqlServerGateway:
                 connection.rollback()
                 connection.close()
         except pyodbc.Error as exc:
+            if exc.args and exc.args[0] in {"HYT00", "HYT01"}:
+                raise QueryTimeoutError("O tempo limite da consulta expirou") from exc
             raise SqlServerError("Falha no acesso ODBC ao SQL Server") from exc
 
     def list_databases(self, server: str) -> list[dict[str, Any]]:

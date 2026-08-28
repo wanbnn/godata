@@ -14,7 +14,7 @@ from starlette.concurrency import run_in_threadpool
 
 from . import __version__
 from .config import ConfigurationError, Settings
-from .gateway import InvalidTargetError, SqlServerError, SqlServerGateway
+from .gateway import InvalidTargetError, QueryTimeoutError, SqlServerError, SqlServerGateway
 from .models import ColumnInfo, DatabaseInfo, HealthResponse, QueryRequest, QueryResponse, SchemaInfo, TableInfo
 from .sql_validation import UnsafeQueryError, validate_read_only_query
 
@@ -61,6 +61,9 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
                 return await run_in_threadpool(getattr(request.app.state.gateway, method), *args)
         except InvalidTargetError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except QueryTimeoutError as exc:
+            logger.warning("Timeout no discovery SQL Server; request_id=%s", request.state.request_id)
+            raise HTTPException(status_code=504, detail=str(exc)) from exc
         except SqlServerError as exc:
             logger.exception("Falha no discovery SQL Server; request_id=%s", request.state.request_id)
             raise HTTPException(status_code=502, detail="Falha ao consultar metadados do SQL Server") from exc
@@ -100,6 +103,9 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
                 )
         except (UnsafeQueryError, InvalidTargetError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except QueryTimeoutError as exc:
+            logger.warning("Timeout SQL Server; request_id=%s", request.state.request_id)
+            raise HTTPException(status_code=504, detail=str(exc)) from exc
         except SqlServerError as exc:
             logger.exception("Falha SQL Server; request_id=%s", request.state.request_id)
             raise HTTPException(status_code=502, detail="Falha ao consultar o SQL Server") from exc

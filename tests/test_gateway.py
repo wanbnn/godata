@@ -1,8 +1,10 @@
 import sys
 from types import SimpleNamespace
 
+import pytest
+
 from godata.config import Settings
-from godata.gateway import SqlServerGateway
+from godata.gateway import QueryTimeoutError, SqlServerGateway
 
 
 class FakeCursor:
@@ -47,3 +49,20 @@ def test_query_timeout_is_set_on_connection_before_cursor(monkeypatch):
     assert result.rows == [[7]]
     assert connection.rolled_back
     assert connection.closed
+
+
+def test_odbc_timeout_is_classified(monkeypatch):
+    class FakeOdbcError(Exception):
+        pass
+
+    def raise_timeout(*args, **kwargs):
+        raise FakeOdbcError("HYT00", "query timeout expired")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "pyodbc",
+        SimpleNamespace(Error=FakeOdbcError, connect=raise_timeout),
+    )
+
+    with pytest.raises(QueryTimeoutError):
+        SqlServerGateway(Settings(api_key="a" * 32)).execute("sql01", "ERP", "SELECT 1", [])
