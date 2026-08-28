@@ -90,13 +90,12 @@ function New-ApiKey {
     return [Convert]::ToBase64String($bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
 }
 
-function Register-GoDataStartup([string]$Launcher) {
-    $powershell = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $command = '"{0}" -NoProfile -ExecutionPolicy Bypass -File "{1}"' -f $powershell, $Launcher
+function Register-GoDataStartup([string]$PythonExe, [string]$Launcher) {
+    $command = '"{0}" "{1}"' -f $PythonExe, $Launcher
 
     Write-Step "Configurando inicialização automática"
     try {
-        & schtasks.exe /Create /TN "GoData" /SC ONLOGON /TR $command /RL LIMITED /IT /F | Out-Null
+        & schtasks.exe /Create /TN "GoData" /SC ONLOGON /TR $command /RL LIMITED /IT /F 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             & schtasks.exe /Query /TN "GoData" | Out-Null
             if ($LASTEXITCODE -eq 0) { return "Agendador de Tarefas" }
@@ -113,9 +112,15 @@ function Register-GoDataStartup([string]$Launcher) {
     try {
         $startup = [Environment]::GetFolderPath("Startup")
         if (-not $startup) { throw "Pasta Startup não localizada" }
-        $startupCmd = Join-Path $startup "GoData.cmd"
-        Set-Content -LiteralPath $startupCmd -Encoding Ascii -Value "@start `"GoData`" $command"
-        if (Test-Path -LiteralPath $startupCmd) { return "Pasta Startup do usuário" }
+        $startupLink = Join-Path $startup "GoData.lnk"
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut($startupLink)
+        $shortcut.TargetPath = $PythonExe
+        $shortcut.Arguments = '"{0}"' -f $Launcher
+        $shortcut.WorkingDirectory = Split-Path -Parent (Split-Path -Parent $Launcher)
+        $shortcut.Description = "GoData com Cloudflare Tunnel"
+        $shortcut.Save()
+        if (Test-Path -LiteralPath $startupLink) { return "Atalho na pasta Startup do usuário" }
     } catch { throw "Nenhum método de inicialização foi permitido por este Windows: $($_.Exception.Message)" }
 
     throw "Não foi possível registrar a inicialização automática."
@@ -227,15 +232,11 @@ try {
         "GODATA_MAX_CONCURRENT_QUERIES=10"
     ) | Set-Content -LiteralPath $envFile -Encoding ASCII
 
-    $launcher = Join-Path $InstallDir "scripts\start-godata.ps1"
+    $launcher = Join-Path $InstallDir "scripts\start-godata.py"
     if (-not (Test-Path -LiteralPath $launcher)) { throw "Launcher não encontrado: $launcher" }
-    $startupMethod = Register-GoDataStartup $launcher
+    $startupMethod = Register-GoDataStartup $venvPython $launcher
 
     Write-Step "Iniciando GoData"
-    Start-Process powershell.exe -ArgumentList @(
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "`"$launcher`""
-    )
-
     Write-Host "`n============================================================" -ForegroundColor Green
     Write-Host "GoData instalado com sucesso" -ForegroundColor Green
     Write-Host "Pasta:    $InstallDir"
@@ -243,6 +244,13 @@ try {
     Write-Host "API Key:  $apiKey" -ForegroundColor Yellow
     Write-Host "A URL do túnel aparecerá na janela do GoData." -ForegroundColor Cyan
     Write-Host "============================================================"
+
+    try {
+        Start-Process -FilePath $venvPython -ArgumentList ('"{0}"' -f $launcher) -WorkingDirectory $InstallDir
+    } catch {
+        Write-Host "O Windows bloqueou Start-Process; iniciando na janela atual." -ForegroundColor Yellow
+        & $venvPython $launcher
+    }
 } finally {
     Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 }

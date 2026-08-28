@@ -44,7 +44,7 @@ nesta ordem:
 
 1. tarefa interativa no Agendador de Tarefas;
 2. chave `Run` do usuário no Registro;
-3. arquivo de inicialização na pasta Startup do usuário.
+3. atalho direto para o launcher Python na pasta Startup do usuário.
 
 Todos os métodos são verificados antes de o instalador concluir. Políticas corporativas podem
 bloquear CMD, PowerShell, downloads ou todos os mecanismos de startup; essas restrições do
