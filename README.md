@@ -16,10 +16,16 @@ Windows que hospeda o serviço.
 
 ## SDK Python: começo rápido
 
-Instale o pacote:
+Para a versão publicada no PyPI, instale o pacote:
 
 ```bash
 pip install godata
+```
+
+Para usar imediatamente a versão mais recente deste repositório:
+
+```bash
+pip install "godata @ git+https://github.com/wanbnn/godata.git@main"
 ```
 
 Crie uma engine apontando para a URL do GoData, a API key e o servidor/banco SQL desejados:
