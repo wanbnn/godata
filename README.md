@@ -19,7 +19,7 @@ Windows que hospeda o serviço.
 Para a versão publicada no PyPI, instale o pacote:
 
 ```bash
-pip install godata
+pip install godata-sdk
 ```
 
 Para usar imediatamente a versão mais recente deste repositório:

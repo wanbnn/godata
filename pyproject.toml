@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "godata"
+name = "godata-sdk"
 version = "0.2.0"
 description = "Proxy HTTP para SQL Server usando autenticação integrada do Windows"
 readme = "README.md"
