@@ -54,6 +54,4 @@ def test_sql_server_connection_defaults(tmp_path, monkeypatch):
     assert settings.trust_server_certificate is True
     assert settings.connection_timeout_seconds == 2048
     assert settings.query_timeout_seconds == 0
-    assert settings.max_rows == 1_500_000
-    assert settings.max_query_length == 100_000
     assert settings.max_concurrent_queries == 10

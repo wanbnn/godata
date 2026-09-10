@@ -4,10 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "godata"
-version = "0.1.0"
-description = "Proxy HTTP de leitura para SQL Server usando autenticação integrada do Windows"
+version = "0.2.0"
+description = "Proxy HTTP para SQL Server usando autenticação integrada do Windows"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "GoData contributors"}]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
 dependencies = [
     "fastapi>=0.116,<1",
     "python-dotenv>=1.1,<2",
@@ -15,6 +24,10 @@ dependencies = [
     "sqlglot>=28.10.1",
     "uvicorn[standard]>=0.35,<1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/wanbnn/godata"
+Source = "https://github.com/wanbnn/godata"
 
 [project.optional-dependencies]
 dev = [

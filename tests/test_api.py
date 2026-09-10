@@ -8,8 +8,9 @@ from godata.main import create_app
 class FakeGateway:
     def execute(self, server, database, query, parameters):
         assert (server, database) == ("sql01", "ERP")
-        assert parameters == [7]
-        return QueryResult(columns=["id", "nome"], rows=[[7, "Alice"]], truncated=False, elapsed_ms=3)
+        if "WHERE id = ?" in query:
+            assert parameters == [7]
+        return QueryResult(columns=["id", "nome"], rows=[[7, "Alice"]], rows_affected=0, truncated=False, elapsed_ms=3)
 
     def list_databases(self, server):
         assert server == "sql01"
@@ -95,27 +96,28 @@ def test_executes_parameterized_read_query():
         "columns": ["id", "nome"],
         "rows": [[7, "Alice"]],
         "row_count": 1,
+        "rows_affected": 0,
         "truncated": False,
         "elapsed_ms": 3,
     }
     assert response.headers["X-Request-ID"] == "test-123"
 
 
-def test_rejects_write_query_before_gateway():
+def test_executes_write_query():
     with client() as api:
         response = api.post(
             "/v1/query",
             headers={"X-API-Key": "a" * 32},
             json={"server": "sql01", "database": "ERP", "query": "DELETE FROM clientes"},
         )
-    assert response.status_code == 400
+    assert response.status_code == 200
 
 
-def test_rejects_multiple_statements():
+def test_executes_multiple_statements():
     with client() as api:
         response = api.post(
             "/v1/query",
             headers={"X-API-Key": "a" * 32},
             json={"server": "sql01", "database": "ERP", "query": "SELECT 1; SELECT 2"},
         )
-    assert response.status_code == 400
+    assert response.status_code == 200

@@ -1,17 +1,72 @@
 # GoData
 
-O GoData é um proxy HTTP **somente-leitura** para Microsoft SQL Server. Um cliente envia o
-servidor, o banco, a consulta T-SQL e os parâmetros; o GoData abre a conexão usando a conta
-Windows/Active Directory do próprio processo e devolve as linhas em JSON.
+SDK Python e proxy HTTP para SQL Server com autenticação integrada do Windows. Configure uma vez
+e execute T-SQL diretamente por Python, sem montar requisições `requests` ou administrar conexões
+ODBC no cliente.
+
+![Aplicação Python → GoData → SQL Server](docs/assets/godata-architecture.png)
 
 ```text
-cliente HTTP -> GoData (X-API-Key) -> SQL Server
-                                  -> Trusted_Connection=Yes
-                                  -> identidade da conta que executa o GoData
+Aplicação Python ── API key ──> GoData ── conta Windows/AD ──> SQL Server
 ```
 
-O cliente nunca envia nem recebe a credencial do domínio. O GoData também não armazena senha
-do SQL Server.
+O cliente não envia nem recebe a credencial do domínio. O GoData não interpreta, filtra ou
+restringe o SQL: cada comando é encaminhado ao SQL Server e executado com as permissões da conta
+Windows que hospeda o serviço.
+
+## SDK Python: começo rápido
+
+Instale o pacote:
+
+```bash
+pip install godata
+```
+
+Crie uma engine apontando para a URL do GoData, a API key e o servidor/banco SQL desejados:
+
+```python
+from godata import create_engine
+
+engine = create_engine(
+    url="https://godata.suaempresa.com",
+    api_key="sua-api-key",
+    server="sqlserver01\\PRODUCAO",
+    database="ERP",
+)
+```
+
+Use `query` (ou seu alias `execute`) para qualquer T-SQL. Os parâmetros usam `?`, como no ODBC:
+
+```python
+result = engine.query(
+    "SELECT id, nome FROM dbo.clientes WHERE ativo = ?",
+    [True],
+)
+
+for cliente in result.mappings():
+    print(cliente["id"], cliente["nome"])
+```
+
+Alterações seguem a mesma interface e são confirmadas pelo GoData quando bem-sucedidas:
+
+```python
+result = engine.execute(
+    "UPDATE dbo.clientes SET ativo = ? WHERE id = ?",
+    [False, 42],
+)
+print(result.rows_affected)
+```
+
+Também são aceitos procedures, DDL e lotes:
+
+```python
+engine.query("EXEC dbo.recalcular_faturas ?", ["2026-09-01"])
+engine.query("CREATE TABLE dbo.exemplo (id int PRIMARY KEY); INSERT INTO dbo.exemplo VALUES (1);")
+```
+
+`result.rows` contém vetores, `result.mappings()` retorna dicionários, `result.first()` traz a
+primeira linha e `result.rows_affected` informa linhas afetadas quando fornecido pelo SQL Server.
+Quando um lote retornar múltiplos conjuntos, o primeiro é devolvido.
 
 ## Instalação automática no Windows
 
@@ -46,8 +101,6 @@ GODATA_ENCRYPT=true
 GODATA_TRUST_SERVER_CERTIFICATE=true
 GODATA_CONNECTION_TIMEOUT_SECONDS=2048
 GODATA_QUERY_TIMEOUT_SECONDS=0
-GODATA_MAX_ROWS=1500000
-GODATA_MAX_QUERY_LENGTH=100000
 GODATA_MAX_CONCURRENT_QUERIES=10
 ```
 
@@ -70,11 +123,10 @@ um prompt UAC, que precisa ser autorizado pelo usuário ou administrador.
 - Python 3.11 ou superior;
 - Microsoft ODBC Driver 18 for SQL Server;
 - `cloudflared` instalado e disponível no `PATH`;
-- uma conta AD dedicada, com permissão **somente SELECT** nos bancos necessários.
+- uma conta AD dedicada, com as permissões necessárias nos bancos acessados.
 
-> A validação de SQL da aplicação é uma camada adicional. A proteção principal deve ser a
-> permissão mínima da conta AD no SQL Server: não conceda `db_owner`, `db_datawriter`, DDL,
-> execução de procedures ou acesso administrativo.
+> As consultas são executadas com as permissões da conta AD do serviço. Restrinja essa conta
+> ao mínimo necessário e não exponha a API para redes não confiáveis.
 
 ## Instalação com PRPM
 
@@ -152,7 +204,7 @@ Em produção, execute esse comando como serviço Windows sob a conta de domíni
 conta do serviço precisa ter `Log on as a service`, acesso de rede ao SQL Server e o login
 correspondente provisionado no SQL Server. Não use `--reload` em produção.
 
-## Requisição
+## API HTTP (opcional)
 
 ```http
 POST /v1/query HTTP/1.1
@@ -176,14 +228,18 @@ Exemplo de resposta:
   "columns": ["id", "nome"],
   "rows": [[1, "Empresa A"], [2, "Empresa B"]],
   "row_count": 2,
+  "rows_affected": 0,
   "truncated": false,
   "elapsed_ms": 18
 }
 ```
 
 Uma query pode ocupar quantas linhas forem necessárias: no JSON, cada quebra de linha é
-representada por `\n`. Também é possível usar uma CTE longa. O limite é uma **instrução** por
-requisição, não uma linha de texto; `SELECT ...; SELECT ...` continua bloqueado.
+representada por `\n`. Não há whitelist, parser ou limite de tamanho de SQL no GoData: são
+aceitos comandos T-SQL de leitura e escrita, procedures, DDL e lotes com múltiplas instruções.
+Para comandos que não retornam dados, `columns` e `rows` ficam vazios e `rows_affected` informa
+o total de linhas afetadas quando o SQL Server o disponibiliza.
+Quando um lote produz mais de um conjunto de resultados, a resposta contém o primeiro deles.
 
 Os parâmetros usam marcadores `?` do ODBC. Valores `decimal` são retornados como string para
 preservar precisão; datas usam ISO 8601; binários usam Base64. Os dados são retornados como
@@ -204,16 +260,14 @@ GET /v1/discovery/columns?server=sqlserver01&database=ERP&schema=dbo&table=clien
 O parâmetro `schema` em `/tables` é opcional; sem ele, tabelas e views de todos os schemas
 visíveis são retornadas. Os endpoints também estão disponíveis para teste interativo em `/docs`.
 
-## Controles incluídos
+## Controles operacionais
 
 - `X-API-Key`, comparada em tempo constante;
-- apenas uma instrução `SELECT`/CTE por chamada;
-- bloqueio de mutações, `SELECT INTO`, comandos e fontes remotas `OPEN*`;
 - parâmetros ODBC separados do SQL;
-- conexão com `ApplicationIntent=ReadOnly` e atributo ODBC `readonly`;
-- rollback e fechamento da conexão após cada chamada;
+- conexão com `ApplicationIntent=ReadWrite` e commit após execução bem-sucedida;
+- rollback e fechamento da conexão em caso de falha;
 - timeout de conexão e de consulta;
-- limite de linhas, tamanho do SQL e consultas simultâneas;
+- limite configurável de consultas simultâneas;
 - `X-Request-ID` para correlação sem registrar a consulta ou os dados.
 
 O banco **não é publicado diretamente** pelo GoData. O servidor HTTP fica acessível apenas no

@@ -16,7 +16,6 @@ from . import __version__
 from .config import ConfigurationError, Settings
 from .gateway import InvalidTargetError, QueryTimeoutError, SqlServerError, SqlServerGateway
 from .models import ColumnInfo, DatabaseInfo, HealthResponse, QueryRequest, QueryResponse, SchemaInfo, TableInfo
-from .sql_validation import UnsafeQueryError, validate_read_only_query
 
 logger = logging.getLogger("godata")
 api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="GoDataApiKey")
@@ -34,7 +33,7 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
     application = FastAPI(
         title="GoData",
         version=__version__,
-        description="Proxy HTTP somente-leitura para SQL Server com autenticação integrada do Windows.",
+        description="Proxy HTTP para SQL Server com autenticação integrada do Windows.",
         lifespan=lifespan,
     )
 
@@ -92,7 +91,6 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
     )
     async def query(body: QueryRequest, request: Request) -> QueryResponse:
         try:
-            validate_read_only_query(body.query, request.app.state.settings.max_query_length)
             async with request.app.state.query_slots:
                 result = await run_in_threadpool(
                     request.app.state.gateway.execute,
@@ -101,7 +99,7 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
                     body.query,
                     body.parameters,
                 )
-        except (UnsafeQueryError, InvalidTargetError) as exc:
+        except InvalidTargetError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except QueryTimeoutError as exc:
             logger.warning("Timeout SQL Server; request_id=%s", request.state.request_id)
@@ -115,6 +113,7 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
             columns=result.columns,
             rows=result.rows,
             row_count=len(result.rows),
+            rows_affected=result.rows_affected,
             truncated=result.truncated,
             elapsed_ms=result.elapsed_ms,
         )

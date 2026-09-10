@@ -10,8 +10,8 @@ class QueryRequest(BaseModel):
 
     server: str = Field(min_length=1, max_length=255, examples=[r"sqlserver01\PRODUCAO"])
     database: str = Field(min_length=1, max_length=128, examples=["ERP"])
-    query: str = Field(min_length=1, examples=["SELECT TOP (10) id, nome FROM dbo.clientes WHERE ativo = ?"])
-    parameters: list[Any] = Field(default_factory=list, max_length=1000, examples=[[True]])
+    query: str = Field(min_length=1, examples=["UPDATE dbo.clientes SET ativo = ? WHERE id = ?"])
+    parameters: list[Any] = Field(default_factory=list, examples=[[True]])
 
 
 class QueryResponse(BaseModel):
@@ -19,6 +19,7 @@ class QueryResponse(BaseModel):
     columns: list[str]
     rows: list[list[Any]]
     row_count: int
+    rows_affected: int | None
     truncated: bool
     elapsed_ms: int
 

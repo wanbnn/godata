@@ -32,6 +32,7 @@ _DATABASE_RE = re.compile(r"^[A-Za-z0-9_$#@. -]+$")
 class QueryResult:
     columns: list[str]
     rows: list[list[Any]]
+    rows_affected: int | None
     truncated: bool
     elapsed_ms: int
 
@@ -64,7 +65,7 @@ class SqlServerGateway:
         return (
             f"Driver={{{self.settings.odbc_driver}}};"
             f"Server={server};Database={database};"
-            "Trusted_Connection=Yes;ApplicationIntent=ReadOnly;"
+            "Trusted_Connection=Yes;ApplicationIntent=ReadWrite;"
             f"Encrypt={encrypt};TrustServerCertificate={trust_certificate};"
         )
 
@@ -80,24 +81,35 @@ class SqlServerGateway:
             connection = pyodbc.connect(
                 connection_string,
                 timeout=self.settings.connection_timeout_seconds,
-                readonly=True,
+                readonly=False,
                 autocommit=False,
             )
             try:
                 connection.timeout = self.settings.query_timeout_seconds
                 cursor = connection.cursor()
                 cursor.execute(query, tuple(parameters))
-                if cursor.description is None:
-                    raise SqlServerError("A instrução não retornou um conjunto de resultados")
+                rows_affected = 0
+                while cursor.description is None:
+                    if cursor.rowcount >= 0:
+                        rows_affected += cursor.rowcount
+                    if not cursor.nextset():
+                        connection.commit()
+                        return QueryResult(
+                            columns=[],
+                            rows=[],
+                            rows_affected=rows_affected,
+                            truncated=False,
+                            elapsed_ms=round((time.perf_counter() - started) * 1000),
+                        )
 
                 columns = [column[0] for column in cursor.description]
-                fetched = cursor.fetchmany(self.settings.max_rows + 1)
-                truncated = len(fetched) > self.settings.max_rows
-                rows = [[_serialize(value) for value in row] for row in fetched[: self.settings.max_rows]]
+                rows = [[_serialize(value) for value in row] for row in cursor.fetchall()]
+                connection.commit()
                 return QueryResult(
                     columns=columns,
                     rows=rows,
-                    truncated=truncated,
+                    rows_affected=rows_affected,
+                    truncated=False,
                     elapsed_ms=round((time.perf_counter() - started) * 1000),
                 )
             finally:
