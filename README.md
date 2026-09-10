@@ -1,5 +1,9 @@
 # GoData
 
+![](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+![](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
+![](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+
 SDK Python e proxy HTTP para SQL Server com autenticação integrada do Windows. Configure uma vez
 e execute T-SQL diretamente por Python, sem montar requisições `requests` ou administrar conexões
 ODBC no cliente.
