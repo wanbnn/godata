@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,6 +22,18 @@ class QueryResponse(BaseModel):
     rows_affected: int | None
     truncated: bool
     elapsed_ms: int
+
+
+class QueryJobResponse(BaseModel):
+    query_id: str
+    request_id: str
+    status: Literal["queued", "running", "completed", "failed", "cancelled"]
+    created_at: float
+    started_at: float | None
+    finished_at: float | None
+    elapsed_ms: int
+    error: str | None
+    version: int
 
 
 class HealthResponse(BaseModel):

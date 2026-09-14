@@ -111,6 +111,8 @@ GODATA_TRUST_SERVER_CERTIFICATE=true
 GODATA_CONNECTION_TIMEOUT_SECONDS=2048
 GODATA_QUERY_TIMEOUT_SECONDS=0
 GODATA_MAX_CONCURRENT_QUERIES=10
+GODATA_QUERY_JOB_TTL_SECONDS=3600
+GODATA_SSE_HEARTBEAT_SECONDS=15
 ```
 
 Ao entrar no Windows, uma janela inicia o GoData e mostra a API key e a nova URL temporária
@@ -215,6 +217,46 @@ correspondente provisionado no SQL Server. Não use `--reload` em produção.
 
 ## API HTTP (opcional)
 
+O SDK usa a API assíncrona por padrão. A submissão retorna imediatamente, portanto uma consulta
+longa não depende de manter a requisição HTTP original aberta:
+
+```http
+POST /v1/queries HTTP/1.1
+Host: godata.interno:4400
+X-API-Key: sua-chave
+Idempotency-Key: identificador-unico-da-operacao
+Content-Type: application/json
+
+{
+  "server": "sqlserver01",
+  "database": "ERP",
+  "query": "EXEC dbo.processamento_longo ?",
+  "parameters": [42]
+}
+```
+
+A resposta é `202 Accepted` e contém um `query_id`. Use os endpoints abaixo para acompanhar,
+recuperar o resultado ou cancelar a execução:
+
+```text
+GET    /v1/queries/{query_id}
+GET    /v1/queries/{query_id}/result
+GET    /v1/queries/{query_id}/events
+DELETE /v1/queries/{query_id}
+```
+
+O endpoint `events` usa Server-Sent Events (SSE), emite mudanças de estado e envia heartbeat no
+intervalo definido por `GODATA_SSE_HEARTBEAT_SECONDS`. A queda dessa conexão não cancela a query;
+o cliente pode reconectar ou continuar consultando o estado. Jobs concluídos e seus resultados
+permanecem disponíveis em memória durante `GODATA_QUERY_JOB_TTL_SECONDS`. Uma reinicialização do
+processo remove os jobs mantidos em memória.
+
+Envie sempre um `Idempotency-Key` estável ao repetir uma submissão cuja resposta tenha se perdido,
+principalmente para `INSERT`, `UPDATE`, DDL e procedures. Repetir a chave com o mesmo conteúdo
+retorna o job original; reutilizá-la com outro conteúdo retorna HTTP 409.
+
+O endpoint síncrono anterior continua disponível para compatibilidade:
+
 ```http
 POST /v1/query HTTP/1.1
 Host: godata.interno:4400
@@ -285,6 +327,8 @@ loopback e o Cloudflare Tunnel fornece a conexão externa com TLS, sem expor a p
 Por padrão, `GODATA_QUERY_TIMEOUT_SECONDS=0` permite que a consulta termine sem um limite
 artificial de execução. Defina um valor positivo para impor um limite. O
 `GODATA_CONNECTION_TIMEOUT_SECONDS` continua limitando separadamente a abertura da conexão.
+`GODATA_MAX_CONCURRENT_QUERIES` também limita o número de jobs efetivamente executados; jobs
+excedentes permanecem em `queued` sem bloquear uma conexão HTTP.
 
 ## Testes
 

@@ -55,3 +55,5 @@ def test_sql_server_connection_defaults(tmp_path, monkeypatch):
     assert settings.connection_timeout_seconds == 2048
     assert settings.query_timeout_seconds == 0
     assert settings.max_concurrent_queries == 10
+    assert settings.query_job_ttl_seconds == 3600
+    assert settings.sse_heartbeat_seconds == 15

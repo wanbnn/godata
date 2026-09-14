@@ -4,6 +4,7 @@ import base64
 import datetime as dt
 import decimal
 import re
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -22,6 +23,10 @@ class SqlServerError(RuntimeError):
 
 class QueryTimeoutError(SqlServerError):
     """A consulta excedeu o tempo limite configurado."""
+
+
+class QueryCancelledError(SqlServerError):
+    """A consulta foi cancelada explicitamente pelo cliente."""
 
 
 _SERVER_RE = re.compile(r"^[A-Za-z0-9_.\\,:-]+$")
@@ -54,6 +59,11 @@ def _serialize(value: Any) -> Any:
 class SqlServerGateway:
     def __init__(self, settings: Settings):
         self.settings = settings
+        self._active_executions: set[str] = set()
+        self._active_cursors: dict[str, Any] = {}
+        self._cancelled: set[str] = set()
+        self._cursor_lock = threading.Lock()
+        self._query_slots = threading.BoundedSemaphore(settings.max_concurrent_queries)
 
     def _connection_string(self, server: str, database: str) -> str:
         server = server.strip()
@@ -70,7 +80,58 @@ class SqlServerGateway:
         )
 
     def execute(self, server: str, database: str, query: str, parameters: Sequence[Any]) -> QueryResult:
+        return self._execute(server, database, query, parameters, execution_id=None)
+
+    def execute_job(
+        self,
+        execution_id: str,
+        server: str,
+        database: str,
+        query: str,
+        parameters: Sequence[Any],
+    ) -> QueryResult:
+        with self._cursor_lock:
+            self._active_executions.add(execution_id)
+        try:
+            return self._execute(server, database, query, parameters, execution_id=execution_id)
+        finally:
+            with self._cursor_lock:
+                self._active_executions.discard(execution_id)
+                self._active_cursors.pop(execution_id, None)
+                self._cancelled.discard(execution_id)
+
+    def cancel(self, execution_id: str) -> bool:
+        with self._cursor_lock:
+            if execution_id not in self._active_executions:
+                return False
+            self._cancelled.add(execution_id)
+            cursor = self._active_cursors.get(execution_id)
+        if cursor is None:
+            return False
+        cursor.cancel()
+        return True
+
+    def _execute(
+        self,
+        server: str,
+        database: str,
+        query: str,
+        parameters: Sequence[Any],
+        execution_id: str | None,
+    ) -> QueryResult:
+        with self._query_slots:
+            return self._execute_with_slot(server, database, query, parameters, execution_id)
+
+    def _execute_with_slot(
+        self,
+        server: str,
+        database: str,
+        query: str,
+        parameters: Sequence[Any],
+        execution_id: str | None,
+    ) -> QueryResult:
         started = time.perf_counter()
+        cancelled_by_client = False
         connection_string = self._connection_string(server, database)
         try:
             import pyodbc
@@ -87,6 +148,12 @@ class SqlServerGateway:
             try:
                 connection.timeout = self.settings.query_timeout_seconds
                 cursor = connection.cursor()
+                if execution_id is not None:
+                    with self._cursor_lock:
+                        self._active_cursors[execution_id] = cursor
+                        cancelled = execution_id in self._cancelled
+                    if cancelled:
+                        raise QueryCancelledError("A consulta foi cancelada")
                 cursor.execute(query, tuple(parameters))
                 rows_affected = 0
                 while cursor.description is None:
@@ -113,9 +180,18 @@ class SqlServerGateway:
                     elapsed_ms=round((time.perf_counter() - started) * 1000),
                 )
             finally:
+                if execution_id is not None:
+                    with self._cursor_lock:
+                        cancelled_by_client = execution_id in self._cancelled
+                        self._active_cursors.pop(execution_id, None)
                 connection.rollback()
                 connection.close()
         except pyodbc.Error as exc:
+            if execution_id is not None:
+                with self._cursor_lock:
+                    cancelled_by_client = cancelled_by_client or execution_id in self._cancelled
+            if cancelled_by_client:
+                raise QueryCancelledError("A consulta foi cancelada") from exc
             if exc.args and exc.args[0] in {"HYT00", "HYT01"}:
                 raise QueryTimeoutError("O tempo limite da consulta expirou") from exc
             raise SqlServerError("Falha no acesso ODBC ao SQL Server") from exc

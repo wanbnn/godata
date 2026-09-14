@@ -51,6 +51,8 @@ class Settings:
     connection_timeout_seconds: int = 2048
     query_timeout_seconds: int = 0
     max_concurrent_queries: int = 10
+    query_job_ttl_seconds: int = 3600
+    sse_heartbeat_seconds: int = 15
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -73,4 +75,6 @@ class Settings:
             connection_timeout_seconds=_positive_int("GODATA_CONNECTION_TIMEOUT_SECONDS", 2048),
             query_timeout_seconds=_non_negative_int("GODATA_QUERY_TIMEOUT_SECONDS", 0),
             max_concurrent_queries=_positive_int("GODATA_MAX_CONCURRENT_QUERIES", 10),
+            query_job_ttl_seconds=_positive_int("GODATA_QUERY_JOB_TTL_SECONDS", 3600),
+            sse_heartbeat_seconds=_positive_int("GODATA_SSE_HEARTBEAT_SECONDS", 15),
         )

@@ -1,3 +1,5 @@
+import time
+
 from fastapi.testclient import TestClient
 
 from godata.config import Settings
@@ -121,3 +123,50 @@ def test_executes_multiple_statements():
             json={"server": "sql01", "database": "ERP", "query": "SELECT 1; SELECT 2"},
         )
     assert response.status_code == 200
+
+
+def test_async_query_lifecycle_and_sse():
+    headers = {"X-API-Key": "a" * 32, "Idempotency-Key": "operation-123"}
+    payload = {"server": "sql01", "database": "ERP", "query": "SELECT 1"}
+    with client() as api:
+        submitted = api.post("/v1/queries", headers=headers, json=payload)
+        assert submitted.status_code == 202
+        query_id = submitted.json()["query_id"]
+        assert submitted.headers["Location"] == f"/v1/queries/{query_id}"
+
+        deadline = time.monotonic() + 2
+        while True:
+            current = api.get(f"/v1/queries/{query_id}", headers=headers)
+            if current.json()["status"] == "completed":
+                break
+            assert time.monotonic() < deadline
+            time.sleep(0.01)
+
+        result = api.get(f"/v1/queries/{query_id}/result", headers=headers)
+        events = api.get(f"/v1/queries/{query_id}/events", headers=headers)
+
+    assert result.status_code == 200
+    assert result.json()["rows"] == [[7, "Alice"]]
+    assert events.headers["content-type"].startswith("text/event-stream")
+    assert "event: status" in events.text
+    assert '"status":"completed"' in events.text
+
+
+def test_idempotency_key_reuses_job_and_rejects_different_query():
+    headers = {"X-API-Key": "a" * 32, "Idempotency-Key": "same-operation"}
+    with client() as api:
+        first = api.post(
+            "/v1/queries", headers=headers,
+            json={"server": "sql01", "database": "ERP", "query": "SELECT 1"},
+        )
+        repeated = api.post(
+            "/v1/queries", headers=headers,
+            json={"server": "sql01", "database": "ERP", "query": "SELECT 1"},
+        )
+        conflict = api.post(
+            "/v1/queries", headers=headers,
+            json={"server": "sql01", "database": "ERP", "query": "SELECT 2"},
+        )
+
+    assert repeated.json()["query_id"] == first.json()["query_id"]
+    assert conflict.status_code == 409

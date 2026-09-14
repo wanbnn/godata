@@ -227,7 +227,9 @@ try {
         "GODATA_TRUST_SERVER_CERTIFICATE=true",
         "GODATA_CONNECTION_TIMEOUT_SECONDS=2048",
         "GODATA_QUERY_TIMEOUT_SECONDS=0",
-        "GODATA_MAX_CONCURRENT_QUERIES=10"
+        "GODATA_MAX_CONCURRENT_QUERIES=10",
+        "GODATA_QUERY_JOB_TTL_SECONDS=3600",
+        "GODATA_SSE_HEARTBEAT_SECONDS=15"
     ) | Set-Content -LiteralPath $envFile -Encoding ASCII
 
     $launcher = Join-Path $InstallDir "scripts\start-godata.py"

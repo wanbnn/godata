@@ -7,15 +7,32 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 from fastapi.security import APIKeyHeader
 from starlette.concurrency import run_in_threadpool
 
 from . import __version__
 from .config import ConfigurationError, Settings
 from .gateway import InvalidTargetError, QueryTimeoutError, SqlServerError, SqlServerGateway
-from .models import ColumnInfo, DatabaseInfo, HealthResponse, QueryRequest, QueryResponse, SchemaInfo, TableInfo
+from .jobs import (
+    TERMINAL_STATUSES,
+    IdempotencyConflictError,
+    JobNotFoundError,
+    QueryJobManager,
+    encode_sse,
+)
+from .models import (
+    ColumnInfo,
+    DatabaseInfo,
+    HealthResponse,
+    QueryJobResponse,
+    QueryRequest,
+    QueryResponse,
+    SchemaInfo,
+    TableInfo,
+)
 
 logger = logging.getLogger("godata")
 api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="GoDataApiKey")
@@ -28,7 +45,15 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
         application.state.settings = active_settings
         application.state.gateway = gateway or SqlServerGateway(active_settings)
         application.state.query_slots = asyncio.Semaphore(active_settings.max_concurrent_queries)
-        yield
+        application.state.query_jobs = QueryJobManager(
+            application.state.gateway,
+            max_workers=active_settings.max_concurrent_queries,
+            ttl_seconds=active_settings.query_job_ttl_seconds,
+        )
+        try:
+            yield
+        finally:
+            application.state.query_jobs.shutdown()
 
     application = FastAPI(
         title="GoData",
@@ -116,6 +141,119 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
             rows_affected=result.rows_affected,
             truncated=result.truncated,
             elapsed_ms=result.elapsed_ms,
+        )
+
+    def query_jobs(request: Request) -> QueryJobManager:
+        return request.app.state.query_jobs
+
+    def get_job(request: Request, query_id: str) -> dict[str, Any]:
+        try:
+            return query_jobs(request).get(query_id)
+        except JobNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Consulta não encontrada ou expirada") from exc
+
+    @application.post(
+        "/v1/queries",
+        response_model=QueryJobResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+        dependencies=[Depends(require_api_key)],
+        tags=["query"],
+    )
+    async def submit_query(body: QueryRequest, request: Request, response: Response) -> dict[str, Any]:
+        idempotency_key = request.headers.get("Idempotency-Key")
+        if idempotency_key is not None and len(idempotency_key) > 255:
+            raise HTTPException(status_code=400, detail="Idempotency-Key deve possuir no máximo 255 caracteres")
+        try:
+            job = query_jobs(request).submit(
+                request.state.request_id,
+                body,
+                idempotency_key,
+            )
+        except IdempotencyConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        response.headers["Location"] = f"/v1/queries/{job['query_id']}"
+        return job
+
+    @application.get(
+        "/v1/queries/{query_id}",
+        response_model=QueryJobResponse,
+        dependencies=[Depends(require_api_key)],
+        tags=["query"],
+    )
+    async def query_status(query_id: str, request: Request) -> dict[str, Any]:
+        return get_job(request, query_id)
+
+    @application.get(
+        "/v1/queries/{query_id}/result",
+        response_model=QueryResponse,
+        dependencies=[Depends(require_api_key)],
+        tags=["query"],
+    )
+    async def query_result(query_id: str, request: Request) -> QueryResponse:
+        try:
+            job, result = query_jobs(request).result(query_id)
+        except JobNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Consulta não encontrada ou expirada") from exc
+        if job["status"] != "completed" or result is None:
+            detail = job["error"] or f"Consulta ainda está {job['status']}"
+            headers = {"Retry-After": "2"} if job["status"] in {"queued", "running"} else None
+            raise HTTPException(status_code=409, detail=detail, headers=headers)
+        return QueryResponse(
+            request_id=job["request_id"],
+            columns=result.columns,
+            rows=result.rows,
+            row_count=len(result.rows),
+            rows_affected=result.rows_affected,
+            truncated=result.truncated,
+            elapsed_ms=result.elapsed_ms,
+        )
+
+    @application.delete(
+        "/v1/queries/{query_id}",
+        response_model=QueryJobResponse,
+        dependencies=[Depends(require_api_key)],
+        tags=["query"],
+    )
+    async def cancel_query(query_id: str, request: Request) -> dict[str, Any]:
+        try:
+            return query_jobs(request).cancel(query_id)
+        except JobNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="Consulta não encontrada ou expirada") from exc
+
+    @application.get(
+        "/v1/queries/{query_id}/events",
+        dependencies=[Depends(require_api_key)],
+        tags=["query"],
+    )
+    async def query_events(query_id: str, request: Request) -> StreamingResponse:
+        initial = get_job(request, query_id)
+        heartbeat = request.app.state.settings.sse_heartbeat_seconds
+
+        async def events():
+            current = initial
+            yield encode_sse("status", current)
+            while current["status"] not in TERMINAL_STATUSES:
+                if await request.is_disconnected():
+                    return
+                current = await asyncio.to_thread(
+                    query_jobs(request).wait_for_change,
+                    query_id,
+                    current["version"],
+                    heartbeat,
+                )
+                if current.pop("changed"):
+                    yield encode_sse("status", current)
+                else:
+                    yield f": heartbeat {int(asyncio.get_running_loop().time())}\n\n"
+
+        return StreamingResponse(
+            events(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache, no-transform",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+            },
         )
 
     @application.exception_handler(ConfigurationError)
