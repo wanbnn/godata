@@ -65,22 +65,29 @@ class SqlServerGateway:
         self._cursor_lock = threading.Lock()
         self._query_slots = threading.BoundedSemaphore(settings.max_concurrent_queries)
 
-    def _connection_string(self, server: str, database: str) -> str:
+    def _connection_string(self, server: str, database: str, username: str | None = None, password: str | None = None) -> str:
         server = server.strip()
         database = database.strip()
         if not _SERVER_RE.fullmatch(server) or not _DATABASE_RE.fullmatch(database):
             raise InvalidTargetError("Servidor ou banco possui caracteres inválidos")
+        if (username is None) != (password is None) or username == "":
+            raise InvalidTargetError("Informe username e password juntos, com username não vazio")
+        authentication = "Trusted_Connection=Yes;"
+        if username is not None:
+            if "\x00" in username or "\x00" in password:
+                raise InvalidTargetError("Credenciais possuem caracteres inválidos")
+            authentication = "UID={" + username.replace("}", "}}") + "};PWD={" + password.replace("}", "}}") + "};"
         encrypt = "Yes" if self.settings.encrypt else "No"
         trust_certificate = "Yes" if self.settings.trust_server_certificate else "No"
         return (
             f"Driver={{{self.settings.odbc_driver}}};"
             f"Server={server};Database={database};"
-            "Trusted_Connection=Yes;ApplicationIntent=ReadWrite;"
+            f"{authentication}ApplicationIntent=ReadWrite;"
             f"Encrypt={encrypt};TrustServerCertificate={trust_certificate};"
         )
 
-    def execute(self, server: str, database: str, query: str, parameters: Sequence[Any]) -> QueryResult:
-        return self._execute(server, database, query, parameters, execution_id=None)
+    def execute(self, server: str, database: str, query: str, parameters: Sequence[Any], *, username: str | None = None, password: str | None = None) -> QueryResult:
+        return self._execute(server, database, query, parameters, execution_id=None, username=username, password=password)
 
     def execute_job(
         self,
@@ -89,11 +96,12 @@ class SqlServerGateway:
         database: str,
         query: str,
         parameters: Sequence[Any],
+        *, username: str | None = None, password: str | None = None,
     ) -> QueryResult:
         with self._cursor_lock:
             self._active_executions.add(execution_id)
         try:
-            return self._execute(server, database, query, parameters, execution_id=execution_id)
+            return self._execute(server, database, query, parameters, execution_id=execution_id, username=username, password=password)
         finally:
             with self._cursor_lock:
                 self._active_executions.discard(execution_id)
@@ -118,9 +126,11 @@ class SqlServerGateway:
         query: str,
         parameters: Sequence[Any],
         execution_id: str | None,
+        username: str | None = None,
+        password: str | None = None,
     ) -> QueryResult:
         with self._query_slots:
-            return self._execute_with_slot(server, database, query, parameters, execution_id)
+            return self._execute_with_slot(server, database, query, parameters, execution_id, username, password)
 
     def _execute_with_slot(
         self,
@@ -129,10 +139,12 @@ class SqlServerGateway:
         query: str,
         parameters: Sequence[Any],
         execution_id: str | None,
+        username: str | None = None,
+        password: str | None = None,
     ) -> QueryResult:
         started = time.perf_counter()
         cancelled_by_client = False
-        connection_string = self._connection_string(server, database)
+        connection_string = self._connection_string(server, database, username, password)
         try:
             import pyodbc
         except ImportError as exc:

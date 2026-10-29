@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 
 class QueryRequest(BaseModel):
@@ -11,6 +11,18 @@ class QueryRequest(BaseModel):
     server: str = Field(min_length=1, max_length=255, examples=[r"sqlserver01\PRODUCAO"])
     database: str = Field(min_length=1, max_length=128, examples=["ERP"])
     query: str = Field(min_length=1, examples=["UPDATE dbo.clientes SET ativo = ? WHERE id = ?"])
+    username: Annotated[str, StringConstraints(strip_whitespace=False)] | None = Field(default=None, min_length=1, repr=False)
+    password: Annotated[str, StringConstraints(strip_whitespace=False)] | None = Field(default=None, repr=False)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_credentials(cls, values):
+        if isinstance(values, dict):
+            username, password = values.get("username"), values.get("password")
+            if (username is None) != (password is None):
+                raise ValueError("Informe username e password juntos")
+        return values
+
     parameters: list[Any] = Field(default_factory=list, examples=[[True]])
 
 

@@ -3,19 +3,19 @@
 ![](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
 ![](https://img.shields.io/badge/Microsoft_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 
-SDK Python e proxy HTTP para SQL Server com autenticação integrada do Windows. Configure uma vez
+SDK Python e proxy HTTP para SQL Server com autenticação Windows/AD ou login e senha do SQL Server. Configure uma vez
 e execute T-SQL diretamente por Python, sem montar requisições `requests` ou administrar conexões
 ODBC no cliente.
 
 ![Aplicação Python → GoData → SQL Server](docs/assets/godata-architecture.png)
 
 ```text
-Aplicação Python ── API key ──> GoData ── conta Windows/AD ──> SQL Server
+Aplicação Python ── API key ──> GoData ── Windows/AD ou login SQL ──> SQL Server
 ```
 
 O cliente não envia nem recebe a credencial do domínio. O GoData não interpreta, filtra ou
 restringe o SQL: cada comando é encaminhado ao SQL Server e executado com as permissões da conta
-Windows que hospeda o serviço.
+Windows que hospeda o serviço ou do usuário SQL informado.
 
 ## SDK Python: começo rápido
 
@@ -43,6 +43,26 @@ engine = create_engine(
     database="ERP",
 )
 ```
+
+Para autenticação própria do SQL Server, informe `username` e `password` na engine:
+
+```python
+engine = create_engine(
+    url="https://godata.suaempresa.com",
+    api_key="sua-api-key",
+    server="sqlserver01",
+    database="ERP",
+    username="usuario_sql",
+    password="senha_sql",
+)
+```
+
+Informe os dois campos juntos. Sem eles, a conexão continua usando Windows/AD.
+O servidor SQL deve aceitar autenticação SQL Server (modo misto). A API key continua
+sendo a credencial de acesso ao GoData. Nas chamadas HTTP diretas a `POST /v1/query`
+e `POST /v1/queries`, envie `username` e `password` no JSON junto com `server`,
+`database` e `query`. As credenciais são enviadas no corpo da submissão e não fazem
+parte das respostas dos jobs. Os endpoints de discovery continuam usando Windows/AD.
 
 Use `query` (ou seu alias `execute`) para qualquer T-SQL. Os parâmetros usam `?`, como no ODBC:
 

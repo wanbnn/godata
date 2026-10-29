@@ -58,7 +58,7 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
     application = FastAPI(
         title="GoData",
         version=__version__,
-        description="Proxy HTTP para SQL Server com autenticação integrada do Windows.",
+        description="Proxy HTTP para SQL Server com autenticação Windows/AD ou login e senha.",
         lifespan=lifespan,
     )
 
@@ -123,6 +123,7 @@ def create_app(settings: Settings | None = None, gateway: Any | None = None) -> 
                     body.database,
                     body.query,
                     body.parameters,
+                    **({"username": body.username, "password": body.password} if body.username is not None else {}),
                 )
         except InvalidTargetError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

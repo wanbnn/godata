@@ -148,6 +148,7 @@ class QueryJobManager:
                     job.body.database,
                     job.body.query,
                     job.body.parameters,
+                    **({"username": job.body.username, "password": job.body.password} if job.body.username is not None else {}),
                 )
             else:
                 result = self._gateway.execute(
@@ -155,6 +156,7 @@ class QueryJobManager:
                     job.body.database,
                     job.body.query,
                     job.body.parameters,
+                    **({"username": job.body.username, "password": job.body.password} if job.body.username is not None else {}),
                 )
         except QueryCancelledError:
             self._finish(query_id, "cancelled")

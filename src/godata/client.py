@@ -79,10 +79,16 @@ class Engine:
         server: str,
         database: str,
         *,
+        username: str | None = None,
+        password: str | None = None,
         timeout: float | None = None,
         poll_interval: float = 2.0,
         status_retries: int = 5,
     ):
+        if (username is None) != (password is None) or username == "":
+            raise ValueError("Informe username e password juntos, com username não vazio")
+        self.username = username
+        self.password = password
         self.url = url.rstrip("/")
         self.api_key = api_key
         self.server = server
@@ -140,6 +146,8 @@ class Engine:
             "query": sql,
             "parameters": list(parameters or []),
         }
+        if self.username is not None:
+            payload.update(username=self.username, password=self.password)
         body = self._request_json(
             "POST",
             "/v1/queries",
@@ -207,6 +215,8 @@ def create_engine(
     server: str,
     database: str,
     *,
+    username: str | None = None,
+    password: str | None = None,
     timeout: float | None = None,
     poll_interval: float = 2.0,
     status_retries: int = 5,
@@ -217,6 +227,8 @@ def create_engine(
         api_key,
         server,
         database,
+        username=username,
+        password=password,
         timeout=timeout,
         poll_interval=poll_interval,
         status_retries=status_retries,
